@@ -49,3 +49,41 @@ bin_ip = "00001010000000010000000111000011"
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 
 """
+
+network = input('Введите адрес сети: ')
+ip, mask = network.split('/')
+octets = ip.split('.')
+mask = int(mask)
+
+oct1, oct2, oct3, oct4 = [
+    int(octets[0]),
+    int(octets[1]),
+    int(octets[2]),
+    int(octets[3])
+]
+
+bin_ip_str = "{:08b}{:08b}{:08b}{:08b}".format(oct1, oct2, oct3, oct4)
+bin_network_str = bin_ip_str[:mask] + "0" * (32 - mask)
+
+net1, net2, net3, net4 = [
+    int(bin_network_str[0:8], 2),
+    int(bin_network_str[8:16], 2),
+    int(bin_network_str[16:24], 2),
+    int(bin_network_str[24:32], 2)
+]
+
+bin_mask = '1' * mask + '0' * (32 - mask)
+m1, m2, m3, m4 = [int(bin_mask[0:8], 2), int(bin_mask[8:16], 2), int(bin_mask[16:24], 2), int(bin_mask[24:32], 2)]
+
+result = '''
+Network:
+{0:<8}  {1:<8}  {2:<8}  {3:<8}
+{0:08b}  {1:08b}  {2:08b}  {3:08b}
+
+Mask:
+/{4}
+{5:<8}  {6:<8}  {7:<8}  {8:<8}
+{5:08b}  {6:08b}  {7:08b}  {8:08b}
+'''
+
+print(result.format(net1, net2, net3, net4, mask, m1, m2, m3, m4))
