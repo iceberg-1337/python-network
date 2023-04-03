@@ -40,3 +40,15 @@
 Ограничение: Все задания надо выполнять используя только пройденные темы.
 
 """
+
+table = []
+
+with open('CAM_table.txt', 'r') as f:
+    for line in f:
+        words = line.split()
+        if words != [] and words[0].isdigit():
+            words[0] = int(words[0])
+            table.append(words)
+
+for words in sorted(table):
+    print(f'{words[0]:<9}{words[1]:20}{words[3]}')
