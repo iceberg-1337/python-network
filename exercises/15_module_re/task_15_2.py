@@ -21,3 +21,24 @@
 Проверить работу функции на примере файла sh_ip_int_br.txt.
 
 """
+
+
+import re
+
+
+def parse_sh_ip_int_br(filename):
+    result = []
+    with open(filename) as f:
+        for line in f:
+            match = re.search(r'^(\S+)\s+'
+                              r'([\d.]+|unassigned)\s+'
+                              r'\S+\s+\S+\s+'
+                              r'(up|down|administratively down)\s+'
+                              r'(up|down)', line)
+            if match:
+                intf = match.group(1)
+                ip_addr = match.group(2)
+                status = match.group(3)
+                protocol = match.group(4)
+                result.append((intf, ip_addr, status, protocol))
+    return result

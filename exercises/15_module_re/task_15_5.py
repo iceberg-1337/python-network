@@ -26,3 +26,22 @@ description Connected to SW1 port Eth 0/1
 
 Проверить работу функции на файле sh_cdp_n_sw1.txt.
 """
+
+import re
+
+
+def generate_description_from_cdp(filename):
+    regex = r"^(?P<dev>\S+)\s+(?P<loc_intf>\S+ \S+)\s+\d+.* (?P<rem_intf>\S+ \S+)$"
+    result_dict = {}
+    with open(filename) as f:
+        for line in f:
+            match_line = re.search(regex, line)
+            if match_line:
+                loc_intf = match_line.group("loc_intf")
+                rem_dev = match_line.group("dev")
+                rem_intf = match_line.group("rem_intf")
+                desc = f"description Connected to {rem_dev} port {rem_intf}"
+                result_dict[loc_intf] = desc
+    return result_dict
+
+

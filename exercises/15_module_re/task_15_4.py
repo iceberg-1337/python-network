@@ -24,3 +24,23 @@ interface Loopback0
 
 Проверить работу функции на примере файла config_r1.txt.
 """
+
+import re
+
+
+def get_ints_without_description(filename):
+    result_list = []
+    regex = r"^\s*interface (?P<intf>\S+)|^\s*description (.+)\n"
+    with open(filename) as f:
+        for line in f:
+            match_line = re.search(regex, line)
+            if match_line:
+                if match_line.lastgroup == "intf":
+                    intf = match_line.group("intf")
+                    result_list.append(intf)
+                else:
+                    result_list.remove(intf)
+    return result_list
+
+
+
