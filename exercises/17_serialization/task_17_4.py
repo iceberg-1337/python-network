@@ -42,6 +42,7 @@ C-3PO,c3po@gmail.com,16/12/2019 17:24
 """
 
 import datetime
+import csv
 
 
 def convert_str_to_datetime(datetime_str):
@@ -56,3 +57,23 @@ def convert_datetime_to_str(datetime_obj):
     Конвертирует строку с датой в формате 11/10/2019 14:05 в объект datetime.
     """
     return datetime.datetime.strftime(datetime_obj, "%d/%m/%Y %H:%M")
+
+
+def write_last_log_to_csv(source_log, output):
+    logs = {}
+    with open(source_log, "r", encoding="utf-8") as file:
+        reader = csv.reader(file)
+        next(reader)
+        for row in reader:
+            name, email, date_str = row
+            date = convert_str_to_datetime(date_str)
+            if email in logs:
+                logs[email].append((date, name, email))
+            else:
+                logs[email] = [(date, name, email)]
+    with open(output, "w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerow(["Name", "Email", "Last Changed"])
+        for email, log in logs.items():
+            log.sort(reverse=True)
+            writer.writerow([log[0][1], email, convert_datetime_to_str(log[0][0])])
