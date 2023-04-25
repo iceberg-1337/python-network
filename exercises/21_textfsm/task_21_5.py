@@ -38,3 +38,26 @@
 Проверить работу функции на примере вывода команды sh ip int br
 и устройствах из devices.yaml.
 """
+
+from task_21_4 import send_and_parse_show_command
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from itertools import repeat
+
+
+def send_and_parse_command_parallel(devices, command, templates_path, limit=3):
+    results = {}
+    with ThreadPoolExecutor(max_workers=limit) as executor:
+        commands = repeat(command)
+        templates = repeat(templates_path)
+        indices = repeat("index")
+        args = zip(devices, commands, templates, indices)
+        future_to_device = {executor.submit(send_and_parse_show_command, *arg): arg[0]["host"] for arg in args}
+
+        for future in as_completed(future_to_device):
+            device = future_to_device[future]
+            try:
+                results[device] = future.result()
+            except Exception as exc:
+                print(f"Device {device} generated an exception: {exc}")
+
+    return results

@@ -15,3 +15,13 @@
 
 Проверить работу шаблона с помощью функции parse_command_output из задания 21.1.
 """
+from pprint import pprint
+from task_21_1 import parse_command_output
+
+with open("output/sh_ip_dhcp_snooping.txt") as f:
+    output = f.read()
+
+template = "templates/sh_ip_dhcp_snooping.template"
+result = parse_command_output(template, output)
+
+pprint(result)

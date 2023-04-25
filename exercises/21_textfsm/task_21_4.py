@@ -21,3 +21,20 @@
 Проверить работу функции на примере вывода команды sh ip int br
 и устройствах из devices.yaml.
 """
+
+from netmiko import ConnectHandler
+from typing import List
+from task_21_3 import parse_command_dynamic
+
+
+def send_and_parse_show_command(
+        device_dict: dict, command: str, templates_path: str, index: str = "index"
+) -> List[dict]:
+    with ConnectHandler(**device_dict) as ssh:
+        ssh.enable()
+        output = ssh.send_command(command)
+
+    attributes = {"Command": command, "Vendor": device_dict["device_type"]}
+    result = parse_command_dynamic(output, attributes, index_file=index, templ_path=templates_path)
+
+    return result
