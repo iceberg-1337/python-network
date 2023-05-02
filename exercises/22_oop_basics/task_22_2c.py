@@ -63,3 +63,68 @@ ValueError                                Traceback (most recent call last)
 ValueError: При выполнении команды "logging 0255.255.1" на устройстве 192.168.100.1 возникла ошибка -> Invalid input detected at '^' marker.
 
 """
+
+import time
+import telnetlib
+import yaml
+from textfsm import clitable
+import re
+
+
+class CiscoTelnet:
+    def __init__(self, ip: str, username: str, password: str, secret: str):
+        self.telnet = telnetlib.Telnet(ip)
+        self.telnet.read_until(b"Username:")
+        self._write_line(username)
+        self.telnet.read_until(b"Password:")
+        self._write_line(password)
+        self._write_line("enable")
+        self.telnet.read_until(b"Password:")
+        self._write_line(secret)
+        self.telnet.read_until(b"#")
+
+    def _write_line(self, line):
+        self.telnet.write(line.encode("ascii") + b"\n")
+
+    def send_show_command(self, command, parse=True, templates="templates", index="index"):
+        self._write_line(command)
+        time.sleep(1)
+        command_output = self.telnet.read_very_eager().decode("ascii")
+        if not parse:
+            return command_output
+        attributes = {"Command": command, "Vendor": "cisco_ios"}
+        cli = clitable.CliTable("index", templates)
+        cli.ParseCmd(command_output, attributes)
+        return [dict(zip(cli.header, row)) for row in cli]
+
+    def _error_in_command(self, command, result, strict):
+        regex = "% (?P<err>.+)"
+        template = (
+            'При выполнении команды "{cmd}" на устройстве {device} '
+            "возникла ошибка -> {error}"
+        )
+        error_in_cmd = re.search(regex, result)
+        if error_in_cmd:
+            message = template.format(
+                cmd=command, device=self.telnet, error=error_in_cmd.group("err")
+            )
+            if strict:
+                raise ValueError(message)
+            else:
+                print(message)
+
+    def send_config_commands(self, commands, strict=True):
+        output = ""
+        if isinstance(commands, str):
+            commands = [commands]
+        self._write_line("conf t")
+        for command in commands:
+            self._write_line(command)
+            time.sleep(1)
+            result = self.telnet.read_very_eager().decode("ascii")
+            output += result
+            self._error_in_command(command, result, strict=strict)
+        self._write_line("end")
+        time.sleep(1)
+        output += self.telnet.read_very_eager().decode("ascii")
+        return output

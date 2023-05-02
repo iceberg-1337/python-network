@@ -50,3 +50,36 @@ up      \r\nEthernet0/1                192.168.200.1   YES NVRAM  up...'
 
 
 """
+
+
+import time
+import telnetlib
+import yaml
+from textfsm import clitable
+
+class CiscoTelnet:
+    def __init__(self, ip: str, username: str, password: str, secret: str):
+        self.telnet = telnetlib.Telnet(ip)
+        self.telnet.read_until(b"Username:")
+        self._write_line(username)
+        self.telnet.read_until(b"Password:")
+        self._write_line(password)
+        self._write_line("enable")
+        self.telnet.read_until(b"Password:")
+        self._write_line(secret)
+        self.telnet.read_until(b"#")
+
+    def _write_line(self, line):
+        self.telnet.write(line.encode("ascii") + b"\n")
+
+    def send_show_command(self, command, parse=True, templates="templates", index="index"):
+        self._write_line(command)
+        time.sleep(1)
+        command_output = self.telnet.read_very_eager().decode("ascii")
+        if not parse:
+            return command_output
+        attributes = {"Command": command, "Vendor": "cisco_ios"}
+        cli = clitable.CliTable("index", templates)
+        cli.ParseCmd(command_output, attributes)
+        return [dict(zip(cli.header, row)) for row in cli]
+
