@@ -75,3 +75,20 @@ topology_example2 = {
     ("R1", "Eth0/4"): ("R7", "Eth0/0"),
     ("R1", "Eth0/6"): ("R9", "Eth0/0"),
 }
+
+
+class Topology:
+    def __init__(self, topology_dict):
+        self.topology = self._normalize(topology_dict)
+
+    def __add__(self, other):
+        new_topology = self.topology.copy()
+        new_topology.update(other.topology)
+        return Topology(new_topology)
+
+    def _normalize(self, topology_dict):
+        normalized = {}
+        for key, value in topology_dict.items():
+            if normalized.get(value) != key:
+                normalized[key] = value
+        return normalized

@@ -41,3 +41,32 @@ topology_example = {
     ("SW1", "Eth0/2"): ("R2", "Eth0/0"),
     ("SW1", "Eth0/3"): ("R3", "Eth0/0"),
 }
+
+
+class Topology:
+    def __init__(self, topology_dict):
+        self.topology = self._normalize(topology_dict)
+        self.links = list(self.topology.items())
+        self.index = 0
+
+    def __add__(self, other):
+        new_topology = self.topology.copy()
+        new_topology.update(other.topology)
+        return Topology(new_topology)
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.index >= len(self.links):
+            raise StopIteration
+        link = self.links[self.index]
+        self.index += 1
+        return link
+
+    def _normalize(self, topology_dict):
+        normalized = {}
+        for key, value in topology_dict.items():
+            if normalized.get(value) != key:
+                normalized[key] = value
+        return normalized
